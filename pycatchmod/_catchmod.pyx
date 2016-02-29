@@ -1,5 +1,6 @@
 import numpy as np
 cimport numpy as np
+from libc cimport math
 
 EPS = 1e-12
 
@@ -120,7 +121,7 @@ cdef class LinearStore:
     cpdef step(self, double[:] inflow, double[:] outflow):
         """
         """
-        cdef double b = np.exp(-1.0/self.linear_storage_constant)
+        cdef double b = math.exp(-1.0/self.linear_storage_constant)
         cdef int i
         cdef int n = self.previous_outflow.shape[0]
 
@@ -161,29 +162,29 @@ cdef class NonLinearStore:
             if self.previous_outflow[i] > 0.0:
                 if inflow[i] < 0.0:
                     # Case (b)
-                    a = np.arctan(np.sqrt(-self.previous_outflow[i]/inflow[i])) - np.sqrt(-inflow[i]/self.nonlinear_storage_constant)
+                    a = math.atan(math.sqrt(-self.previous_outflow[i]/inflow[i])) - math.sqrt(-inflow[i]/self.nonlinear_storage_constant)
                     if a > 0.0:
-                        Q2 = -inflow[i]*np.tan(a)**2
+                        Q2 = -inflow[i]*math.tan(a)**2
                     else:
                         Q2 = 0.0
                 elif inflow[i] > 0.0:
                     # Case (c)
-                    a = np.sqrt(self.previous_outflow[i]) - np.sqrt(inflow[i])
-                    a /= np.sqrt(self.previous_outflow[i]) + np.sqrt(inflow[i])
+                    a = math.sqrt(self.previous_outflow[i]) - math.sqrt(inflow[i])
+                    a /= math.sqrt(self.previous_outflow[i]) + math.sqrt(inflow[i])
 
-                    b = -2.0*T*np.sqrt(inflow[i]/self.nonlinear_storage_constant)
+                    b = -2.0*T*math.sqrt(inflow[i]/self.nonlinear_storage_constant)
 
-                    Q2 = inflow[i]*(1 + a*np.exp(b))**2
-                    Q2 /= (1 - a*np.exp(b))**2
+                    Q2 = inflow[i]*(1 + a*math.exp(b))**2
+                    Q2 /= (1 - a*math.exp(b))**2
                 else:
                     # Case (a)  inflow[i] == 0.0
                     Q2 = self.nonlinear_storage_constant
-                    Q2 /= (np.sqrt(self.nonlinear_storage_constant/self.previous_outflow[i]) + T)**2
+                    Q2 /= (math.sqrt(self.nonlinear_storage_constant/self.previous_outflow[i]) + T)**2
             else:
                 # Case (d) - less than zero initial outflow
                 # Ensure the sqrt is done with a +ve number (or zero)
 
-                V = -np.sqrt(np.abs(self.previous_outflow[i])*self.nonlinear_storage_constant)
+                V = -math.sqrt(abs(self.previous_outflow[i])*self.nonlinear_storage_constant)
                 V += inflow[i]*T
 
                 if V > 0.0:
@@ -193,10 +194,10 @@ cdef class NonLinearStore:
                     # Wilby (1994) is unclear what 'a' should be in case (d)
                     # Testing reveals it should be unity.
                     a = 1.0
-                    b = -2.0*(T - t)*np.sqrt(inflow[i]/self.nonlinear_storage_constant)
+                    b = -2.0*(T - t)*math.sqrt(inflow[i]/self.nonlinear_storage_constant)
 
-                    Q2 = inflow[i]*(1 - a*np.exp(b))**2
-                    Q2 /= (1 + a*np.exp(b))**2
+                    Q2 = inflow[i]*(1 - a*math.exp(b))**2
+                    Q2 /= (1 + a*math.exp(b))**2
                 else:
                     Q2 = 0.0
 
